@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Uncertainty Calculator</title>
+    <style>
+        :root { --primary: #0f172a; --accent: #3b82f6; --bg: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; color: var(--primary); }
+        .card { background: #ffffff; width: 100%; max-width: 550px; padding: 2rem; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        h2 { text-align: center; margin-top: 0; font-weight: 800; letter-spacing: -0.025em; }
+        
+        .section { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; }
+        
+        textarea { 
+            width: 100%; height: 100px; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; 
+            font-size: 1rem; resize: none; box-sizing: border-box; transition: all 0.2s;
+        }
+        textarea:focus { outline: none; border-color: var(--accent); background: #fdfdfd; }
+
+        .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        select, input[type="number"].k-input { 
+            width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem;
+        }
+
+        button { 
+            width: 100%; padding: 16px; background: var(--primary); color: white; border: none; 
+            border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: transform 0.1s;
+        }
+        button:active { transform: scale(0.98); }
+
+        .results { 
+            margin-top: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; display: none;
+            padding-top: 20px; border-top: 2px dashed #f1f5f9;
+        }
+        .stat-box { background: #f1f5f9; padding: 15px; border-radius: 14px; text-align: center; }
+        .full { grid-column: span 2; }
+        .highlight { background: #eff6ff; border: 2px solid #dbeafe; }
+        .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 4px; }
+        .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>⚙️ เครื่องคำนวณ Uncertainty</h2>
+    
+    <div class="section">
+        <label>ชุดข้อมูลตัวเลข (ก๊อปจาก Excel ได้):</label>
+        <textarea id="rawInput" placeholder="เช่น 54.71, 54.72..."></textarea>
+    </div>
+
+    <div class="config-grid">
+        <div class="section">
+            <label>เลือกตัวคูณ (k-factor):</label>
+            <select id="kSelect" onchange="toggleCustomK()">
+                <option value="1">k = 1 (ความเชื่อมั่น 68%)</option>
+                <option value="2" selected>k = 2 (ความเชื่อมั่น 95%)</option>
+                <option value="3">k = 3 (ความเชื่อมั่น 99%)</option>
+                <option value="custom">กำหนดเอง...</option>
+            </select>
+        </div>
+        <div class="section" id="customKDiv" style="display:none;">
+            <label>ระบุค่า k เอง:</label>
+            <input type="number" id="customK" class="k-input" step="0.001" value="2.000">
+        </div>
+    </div>
+
+    <button onclick="calculate()">ประมวลผลข้อมูล</button>
+
+    <div class="results" id="resArea">
+        <div class="stat-box"><div class="stat-label">จำนวน (n)</div><div id="resN" class="stat-value">-</div></div>
+        <div class="stat-box"><div class="stat-label">ค่าเฉลี่ย (x̄)</div><div id="resAvg" class="stat-value">-</div></div>
+        <div class="stat-box"><div class="stat-label">Std. (σ)</div><div id="resStd" class="stat-value">-</div></div>
+        <div class="stat-box highlight full">
+            <div class="stat-label" style="color: #3b82f6;">Uncertainty (±kσ)</div>
+            <div id="resUnc" class="stat-value" style="color: #2563eb;">-</div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleCustomK() {
+    const isCustom = document.getElementById('kSelect').value === 'custom';
+    document.getElementById('customKDiv').style.display = isCustom ? 'block' : 'none';
+}
+
+function calculate() {
+    const text = document.getElementById('rawInput').value;
+    const numbers = text.match(/-?\d+(\.\d+)?/g);
+
+    if (!numbers || numbers.length < 2) {
+        alert("กรุณากรอกตัวเลขอย่างน้อย 2 ค่า");
+        return;
+    }
+
+    // กำหนดค่า k
+    let k;
+    const kSelect = document.getElementById('kSelect').value;
+    if (kSelect === 'custom') {
+        k = parseFloat(document.getElementById('customK').value);
+    } else {
+        k = parseFloat(kSelect);
+    }
+
+    const data = numbers.map(Number);
+    const n = data.length;
+    const avg = data.reduce((a, b) => a + b) / n;
+    const std = Math.sqrt(data.map(x => Math.pow(x - avg, 2)).reduce((a, b) => a + b) / n);
+    const uncertainty = std * k;
+
+    document.getElementById('resN').innerText = n;
+    document.getElementById('resAvg').innerText = avg.toFixed(4);
+    document.getElementById('resStd').innerText = std.toFixed(4);
+    document.getElementById('resUnc').innerText = uncertainty.toFixed(4);
+    document.getElementById('resArea').style.display = 'grid';
+}
+</script>
+
+</body>
+</html>
