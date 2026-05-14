@@ -50,21 +50,21 @@
 </head>
 <body>
     <div class="container">
-        <h1>📊 Uncertainty Calculator</h1>
+        <h1> Uncertainty Calculator</h1>
         <p class="subtitle">คำนวณค่าเฉลี่ย, SD และความไม่แน่นอนการวัด (รองรับ 2 มาตรฐาน)</p>
 
         <textarea id="dataInput" rows="5" placeholder="ตัวอย่าง: 44.62 44.63 44.57 44.63"></textarea>
 
         <div class="options">
             <div>
-                <label>📐 มาตรฐานการคำนวณ:</label>
+                <label> มาตรฐานการคำนวณ:</label>
                 <select id="methodSelect">
                     <option value="sample" selected>มาตรฐานสากล (Sample SD, n-1)</option>
                     <option value="population">แบบพื้นฐาน (Population SD, n)</option>
                 </select>
             </div>
             <div>
-                <label>📏 Coverage Factor (k):</label>
+                <label> Coverage Factor (k):</label>
                 <select id="kSelect">
                     <option value="1">k = 1</option>
                     <option value="2" selected>k = 2</option>
